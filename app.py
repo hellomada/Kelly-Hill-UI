@@ -16,6 +16,9 @@ num_runs = st.number_input(
     min_value=1, max_value=20, value=1, step=1
 )
 
+# ✅ Add toggle for newsletter/blog extras
+extras_requested = st.checkbox("Include newsletter & blog extras?", value=False)
+
 # Button to trigger Make automation
 if st.button("▶ Run for Kelly"):
     st.write(f"Running scenario {num_runs} time(s)...")
@@ -23,15 +26,19 @@ if st.button("▶ Run for Kelly"):
     responses = []
     for i in range(num_runs):
         try:
-            # Send POST request to webhook
-            r = requests.post(WEBHOOK_URL, json={"user": "Kelly", "run_number": i+1})
+            # Send POST request to webhook with extras_requested
+            payload = {
+                "user": "Kelly",
+                "run_number": i + 1,
+                "extras_requested": extras_requested
+            }
+            
+            r = requests.post(WEBHOOK_URL, json=payload)
             
             if r.status_code == 200:
                 try:
-                    # Try to parse JSON response
                     res = r.json()
                 except ValueError:
-                    # Fallback if response is plain text
                     res = r.text
 
                 responses.append(res)
@@ -41,8 +48,7 @@ if st.button("▶ Run for Kelly"):
                 responses.append(res)
                 st.error(f"Run {i+1}: Failed ❌")
             
-            # Optional delay between runs
-            time.sleep(1)
+            time.sleep(1)  # optional delay
 
         except Exception as e:
             res = f"Exception: {e}"
